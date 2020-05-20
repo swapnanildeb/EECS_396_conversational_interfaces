@@ -1,0 +1,136 @@
+;;;
+;;; task-models-kiosk.krf
+;;;
+;;; This file contains definitions of task models for Companions 
+;;; natural language interaction.
+;;;
+;;; $LastChangedDate: 2018-06-12 01:44:29 -0500 (Tue, 12 Jun 2018) $
+;;; $LastChangedBy: ribeiro $
+
+(in-microtheory Interaction-Manager-KioskMt)
+(isa Interaction-Manager-KioskMt Microtheory)
+(genlMt Interaction-Manager-KioskMt KioskDataMt) ; Gets us our Kiosk data and ontology.
+(genlMt Interaction-Manager-KioskMt KioskEnglishMt) ; Gets us our Kiosk language data.
+(genlMt Interaction-Manager-KioskMt KioskSolveSuggestionsMt ) ; Gets us any Kiosk-specific solve suggestions.
+(genlMt Interaction-Manager-KioskMt Interaction-ManagerMt) ; Gets us what we need from IM.
+
+(isa processKioskUtterance ComplexActionPredicate)
+(arity processKioskUtterance 1)
+(arg1Isa processKioskUtterance CharacterString)
+(comment setupIMSessionCase "Plan for Kiosk to run  QA plans.")
+
+(isa handleKioskInput ComplexActionPredicate)
+(arity handleKioskInput 2)
+(arg2Isa handleKioskInput CharacterString)
+(comment handleKioskInput "Plan for Kiosk to run  QA plans.")
+
+(isa kioskLoggingInfo Relation)
+(arity kioskLoggingInfo 4)
+(comment kioskLoggingInfo "A predicate that can be used to accumulate kiosk logging information from plans")
+
+(preconditionForMethod
+ (and (sessionContext ?c))
+ (methodForAction
+  (processKioskUtterance ?string)         ; ?context is the session-context
+  (actionSequence
+   (TheList
+    (processUserUtterance ?c ?string)))))
+
+(preconditionForMethod
+ (and (uninferredSentence (handleKioskInfo "true"))
+      (different ?string "nil")
+      (currentDomain ?domain)   ; the outsourced handler doesn't support a ground query signature yet.
+      (equals ?domain Kiosk))
+ (methodForAction
+  (processUserUtterance ?context ?string)         ; ?context is the session-context
+  (actionSequence
+   (TheList
+    (doAgentPlan
+     (actionSequence
+      (TheList (handleKioskInput ?context ?string))))))))
+
+(preconditionForMethod             ;; This should be the response handler.
+ (and (different ?string "nil")
+      (currentDomain ?domain)   ; the outsourced handler doesn't support a ground query signature yet.
+      (equals ?domain Kiosk)
+      (currentUser ?user))
+ (methodForAction
+  (processUserUtterance ?context ?string)         ; ?context is the session-context
+  (actionSequence
+   (TheList
+    (doAgentPlan
+     (actionSequence
+      (TheList 
+          (doRecord (ist-Information Interaction-Manager-KioskMt (userInfo ?user ?string)))
+          (doForget (ist-Information Interaction-Manager-KioskMt (handleKioskInfo "true"))))))))))
+
+(preconditionForMethod
+ (and (currentUser ?user)
+      (outsourcedOnly (currentTime ?pre-parse-time)) ; judging by the other use of currentTime, this is bad for backtracking, how to fix?
+      (evaluate ?interps
+        (TheClosedRetrievalSetOf ?prop
+          (and (outsourcedOnly (textInterpretation ?string ?s-id ?interpretation))
+               (unifies ?prop (ist-Information ?context (interpretationOf ?s-id ?interpretation))))))
+      (evaluate ?s-ids
+        (TheClosedRetrievalSetOf ?s-id
+          (wmOnly (subexpressionMatching (ist-Information ?context (interpretationOf ?s-id ?interpretation)) ?interps ?expr))))
+      (outsourcedOnly (currentSentenceId ?sentence-id))  ; of the form Sentence-3434192505-1834, just the last sentence read in
+      (outsourcedOnly (currentTurn ?turn))
+      (outsourcedOnly (currentTime ?time))  ; This is bad.  If it backtracks to here it loops forever!
+      (outsourcedOnly (currentDiscourseId ?discourse-id)))
+ (methodForAction
+  (handleKioskInput ?context ?string)         ; ?context is the session-context
+  (actionSequence
+   (TheList
+    (doAssert (kioskLoggingInfo ?pre-parse-time ?time ?turn ?user))
+    (doRecordMembers
+     (TheSet
+      (ist-Information ?context (userUtteranceAt ?time ?sentence-id ?string))
+      (ist-Information ?context (isa ?sentence-id CommunicationAct-Single))
+      (ist-Information ?context (senderOfInfo ?sentence-id ?user))
+      (ist-Information ?context (turnUtterance ?turn ?sentence-id))
+      (ist-Information ?context (lastSentenceForStatements ?sentence-id ?s-ids))
+      ))
+    (doAnnounce "~&(userUtteranceAt ~a ~a ~s)" (?time ?sentence-id ?string))
+    (doAgentPlan
+     (actionSequence
+      (TheList 
+          (answerQuestionViaEEs (DiscourseCaseFn ?discourse-id))
+          (doSayUtterance ?system-utterance "What's your favorite food?")
+          (doRecord (ist-Information Interaction-Manager-KioskMt (handleKioskInfo "true"))))))))))
+
+(<== (preferInContext (processUserUtterance ?context ?string) ?seq1 ?seq2) 
+     (containsPattern (handleKioskInput ?nc ?ns) ?seq1))
+
+(isa answerQuestionViaEEs ComplexActionPredicate)
+(arity answerQuestionViaEEs 1)
+(arg1Isa answerQuestionViaEEs Microtheory)  ; the discourse case
+(comment answerQuestionViaEEs "(answerQuestionViaEEs ?dcase) uses analogical QA to produce an answer. That answer is routed either to the interaction UI or to /psi, depending on whether the psi agent exists in the current session.")
+
+(preconditionForMethod
+ (and (currentAgents ?agents)
+      (elementOf psi ?agents)  ; are we running with psi?
+      (newReifiedUtterance ?system-utterance)
+      (generateMostAppropriateQuery ?dcase ?response)
+      (unifies ?message (achieve :receiver psi :content ?response)))
+    (methodForAction
+        (answerQuestionViaEEs ?dcase)
+        (actionSequence 
+            (TheList 
+             (doSayUtterance ?system-utterance ?response)
+             (doSend psi ?message)
+             ))))
+
+(preconditionForMethod
+ (and (currentAgents ?agents)
+      (not (elementOf psi ?agents))  ; are we *not* running with psi?
+      (newReifiedUtterance ?system-utterance)
+      (generateMostAppropriateQuery ?dcase ?response)
+      (subexpressionMatching (psikiSayText ?p-text) ?response ?st)
+      )
+    (methodForAction
+        (answerQuestionViaEEs ?dcase)
+        (actionSequence 
+            (TheList 
+             (doSayUtterance ?system-utterance ?p-text)
+             ))))
