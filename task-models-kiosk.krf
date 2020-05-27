@@ -51,7 +51,7 @@
 
 (preconditionForMethod             ;; This should be the response handler.
  (and (different ?string "nil")
-      (currentDomain ?domain)   ; the outsourced handler doesn't support a ground query signature yet.
+      (currentDomain ?domain)   
       (equals ?domain Kiosk)
       (currentUser ?user))
  (methodForAction
@@ -62,7 +62,8 @@
      (actionSequence
       (TheList 
           (doRecord (ist-Information Interaction-Manager-KioskMt (userInfo ?user ?string)))
-          (doForget (ist-Information Interaction-Manager-KioskMt (handleKioskInfo "true"))))))))))
+          (doForget (ist-Information Interaction-Manager-KioskMt (handleKioskInfo "true")))
+          (doSayUtterance ?system-utterance "Wow, me too! Let me know if I can help with anything else!"))))))))
 
 (preconditionForMethod
  (and (currentUser ?user)
