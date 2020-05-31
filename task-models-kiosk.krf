@@ -28,6 +28,17 @@
 (arity kioskLoggingInfo 4)
 (comment kioskLoggingInfo "A predicate that can be used to accumulate kiosk logging information from plans")
 
+(isa genlsTrans Predicate)
+(arity genlsTrans 2)
+(comment genlsTrans "A transitive form of genls that searches for ?super in the genls of ?col or the genls of the genls of ?col, and so on.")
+
+(<== (genlsTrans ?col ?super) 
+    (genls ?col ?g) 
+    (genlsTrans ?g ?super))
+    
+(<== (genlsTrans ?col ?super) 
+    (genls ?col ?super))
+
 (preconditionForMethod
  (and (sessionContext ?c))
  (methodForAction
@@ -49,7 +60,7 @@
       (TheList (handleKioskInput ?context ?string))))))))
 
 (preconditionForMethod
- (and (uninferredSentence (handleKioskInfo "true"))
+ (and (uninferredSentence (handleKioskInfo))
       (currentUser ?user)
       (outsourcedOnly (currentTime ?pre-parse-time)) ; judging by the other use of currentTime, this is bad for backtracking, how to fix?
       (evaluate ?interps
@@ -82,7 +93,7 @@
       (TheList 
           (answerQuestionViaEEs (DiscourseCaseFn ?discourse-id))
           (doSayUtterance ?system-utterance "What's your favorite food?")
-          (doRecord (ist-Information Interaction-Manager-KioskMt (handleKioskInfo "true"))))))))))
+          (doRecord (ist-Information Interaction-Manager-KioskMt (handleKioskInfo))))))))))
 
 (preconditionForMethod
  (and (currentUser ?user)
@@ -96,8 +107,9 @@
           (wmOnly (subexpressionMatching (ist-Information ?context (interpretationOf ?s-id ?interpretation)) ?interps ?expr))))
       (evaluate ?true-interps
         (TheClosedRetrievalSetOf ?food
-          (wmOnly (subexpressionMatching (isa ?thing ?food) ?interps ?sub-expr))))
+          (and (wmOnly (subexpressionMatching (isa ?thing ?food) ?interps ?sub-expr)))))
       (evaluate ?fave-food (Arg1Fn ?true-interps))
+      (genls ?fave-food Food)
       (prettyString-Canonical ?fave-food ?food-rep)
       (formattedContentString "Wow, I like ~a too! Let me know if I can help you with anything else." (TheList ?food-rep) ?response)
       (outsourcedOnly (currentSentenceId ?sentence-id))  ; of the form Sentence-3434192505-1834, just the last sentence read in
@@ -123,10 +135,50 @@
       (TheList 
           (doRecord (ist-Information Interaction-Manager-KioskMt (userInfo ?user FavoriteFood ?fave-food)))
           (doSayUtterance ?system-utterance ?response)
-          (doForget (ist-Information Interaction-Manager-KioskMt (handleKioskInfo "true"))))))))))
+          (doForget (ist-Information Interaction-Manager-KioskMt (handleKioskInfo))))))))))
 
-(<== (preferInContext (processUserUtterance ?context ?string) ?seq1 ?seq2) 
-     (containsPattern (handleKioskInput ?nc ?ns) ?seq1))
+(preconditionForMethod
+ (and (currentUser ?user)
+      (outsourcedOnly (currentTime ?pre-parse-time)) ; judging by the other use of currentTime, this is bad for backtracking, how to fix?
+      (evaluate ?interps
+        (TheClosedRetrievalSetOf ?prop
+          (and (outsourcedOnly (textInterpretation ?string ?s-id ?interpretation))
+               (unifies ?prop (ist-Information ?context (interpretationOf ?s-id ?interpretation))))))
+      (evaluate ?s-ids
+        (TheClosedRetrievalSetOf ?s-id
+          (wmOnly (subexpressionMatching (ist-Information ?context (interpretationOf ?s-id ?interpretation)) ?interps ?expr))))
+      (evaluate ?true-interps
+        (TheClosedRetrievalSetOf ?food
+          (and (wmOnly (subexpressionMatching (isa ?thing ?food) ?interps ?sub-expr)))))
+      (evaluate ?fave-food (or (Arg1Fn ?true-interps)
+                               Thing))
+      (uninferredSentence (genls ?fave-food Food))
+      (outsourcedOnly (currentSentenceId ?sentence-id))  ; of the form Sentence-3434192505-1834, just the last sentence read in
+      (outsourcedOnly (currentTurn ?turn))
+      (outsourcedOnly (currentTime ?time))  ; This is bad.  If it backtracks to here it loops forever!
+      (outsourcedOnly (currentDiscourseId ?discourse-id)))
+ (methodForAction
+  (handleKioskInput ?context ?string)         ; ?context is the session-context
+  (actionSequence
+   (TheList
+    (doAssert (kioskLoggingInfo ?pre-parse-time ?time ?turn ?user))
+    (doRecordMembers
+     (TheSet
+      (ist-Information ?context (userUtteranceAt ?time ?sentence-id ?string))
+      (ist-Information ?context (isa ?sentence-id CommunicationAct-Single))
+      (ist-Information ?context (senderOfInfo ?sentence-id ?user))
+      (ist-Information ?context (turnUtterance ?turn ?sentence-id))
+      (ist-Information ?context (lastSentenceForStatements ?sentence-id ?s-ids))
+      ))
+    (doAnnounce "~&(userUtteranceAt ~a ~a ~s)" (?time ?sentence-id ?string))
+    (doAgentPlan
+     (actionSequence
+      (TheList
+          (doSayUtterance ?system-utterance "Alright, nevermind.")
+          (doForget (ist-Information Interaction-Manager-KioskMt (handleKioskInfo))))))))))
+
+(<== (preferInContext (handleKioskInput ?context ?string) ?seq1 ?seq2) 
+     (containsPattern (answerQuestionViaEEs ?dc) ?seq1))
 
 (isa answerQuestionViaEEs ComplexActionPredicate)
 (arity answerQuestionViaEEs 1)
