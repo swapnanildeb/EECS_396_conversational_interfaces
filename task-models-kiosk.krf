@@ -98,7 +98,8 @@
         (TheClosedRetrievalSetOf ?food
           (wmOnly (subexpressionMatching (isa ?thing ?food) ?interps ?sub-expr))))
       (evaluate ?fave-food (Arg1Fn ?true-interps))
-      (formattedContentString "Wow, I like ~a too! Let me know if I can help you with anything else." (TheList ?fave-food) ?response)
+      (prettyString-Canonical ?fave-food ?food-rep)
+      (formattedContentString "Wow, I like ~a too! Let me know if I can help you with anything else." (TheList ?food-rep) ?response)
       (outsourcedOnly (currentSentenceId ?sentence-id))  ; of the form Sentence-3434192505-1834, just the last sentence read in
       (outsourcedOnly (currentTurn ?turn))
       (outsourcedOnly (currentTime ?time))  ; This is bad.  If it backtracks to here it loops forever!
