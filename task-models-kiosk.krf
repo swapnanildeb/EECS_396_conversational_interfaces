@@ -28,17 +28,6 @@
 (arity kioskLoggingInfo 4)
 (comment kioskLoggingInfo "A predicate that can be used to accumulate kiosk logging information from plans")
 
-(isa genlsTrans Predicate)
-(arity genlsTrans 2)
-(comment genlsTrans "A transitive form of genls that searches for ?super in the genls of ?col or the genls of the genls of ?col, and so on.")
-
-(<== (genlsTrans ?col ?super) 
-    (genls ?col ?g) 
-    (genlsTrans ?g ?super))
-    
-(<== (genlsTrans ?col ?super) 
-    (genls ?col ?super))
-
 (preconditionForMethod
  (and (sessionContext ?c))
  (methodForAction
@@ -70,6 +59,10 @@
       (evaluate ?s-ids
         (TheClosedRetrievalSetOf ?s-id
           (wmOnly (subexpressionMatching (ist-Information ?context (interpretationOf ?s-id ?interpretation)) ?interps ?expr))))
+      (evaluate ?question-pair
+        (RandomMemberFn (TheSet (Food "What's your favorite food?"))))
+      (evaluate ?category (Arg0Fn ?question-pair))
+      (evaluate ?question (Arg1Fn ?question-pair))
       (outsourcedOnly (currentSentenceId ?sentence-id))  ; of the form Sentence-3434192505-1834, just the last sentence read in
       (outsourcedOnly (currentTurn ?turn))
       (outsourcedOnly (currentTime ?time))  ; This is bad.  If it backtracks to here it loops forever!
@@ -92,7 +85,7 @@
      (actionSequence
       (TheList 
           (answerQuestionViaEEs (DiscourseCaseFn ?discourse-id))
-          (doSayUtterance ?system-utterance "What's your favorite food?")
+          (doSayUtterance ?system-utterance ?question)
           (doRecord (ist-Information Interaction-Manager-KioskMt (handleKioskInfo))))))))))
 
 (preconditionForMethod
@@ -107,9 +100,9 @@
           (wmOnly (subexpressionMatching (ist-Information ?context (interpretationOf ?s-id ?interpretation)) ?interps ?expr))))
       (evaluate ?true-interps
         (TheClosedRetrievalSetOf ?food
-          (and (wmOnly (subexpressionMatching (isa ?thing ?food) ?interps ?sub-expr)))))
+          (and (wmOnly (subexpressionMatching (isa ?thing ?food) ?interps ?sub-expr))
+                (genls ?food Food))))
       (evaluate ?fave-food (Arg1Fn ?true-interps))
-      (genls ?fave-food Food)
       (prettyString-Canonical ?fave-food ?food-rep)
       (formattedContentString "Wow, I like ~a too! Let me know if I can help you with anything else." (TheList ?food-rep) ?response)
       (outsourcedOnly (currentSentenceId ?sentence-id))  ; of the form Sentence-3434192505-1834, just the last sentence read in
@@ -149,10 +142,9 @@
           (wmOnly (subexpressionMatching (ist-Information ?context (interpretationOf ?s-id ?interpretation)) ?interps ?expr))))
       (evaluate ?true-interps
         (TheClosedRetrievalSetOf ?food
-          (and (wmOnly (subexpressionMatching (isa ?thing ?food) ?interps ?sub-expr)))))
-      (evaluate ?fave-food (or (Arg1Fn ?true-interps)
-                               Thing))
-      (uninferredSentence (genls ?fave-food Food))
+          (and (wmOnly (subexpressionMatching (isa ?thing ?food) ?interps ?sub-expr))
+                (genls ?food Food))))
+      (uninferredSentence (evaluate ?fave-food (Arg1Fn ?true-interps)))
       (outsourcedOnly (currentSentenceId ?sentence-id))  ; of the form Sentence-3434192505-1834, just the last sentence read in
       (outsourcedOnly (currentTurn ?turn))
       (outsourcedOnly (currentTime ?time))  ; This is bad.  If it backtracks to here it loops forever!
