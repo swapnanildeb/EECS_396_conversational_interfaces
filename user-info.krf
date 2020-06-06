@@ -1,0 +1,51 @@
+(in-microtheory (SocialModelMtFn faraaz))
+
+(isa faraaz NUPerson)
+(userInfo faraaz Food Pizza)
+(userInfo faraaz WheeledTransportationDevice Bicycle)
+
+(FNNounSemtrans (TheList) Faraaz-TheWord
+  (and (isa :NOUN faraaz)) (frame FN_Misc)
+  (bindingTemplate (TheList)) (groupPatterns (TheSet)))
+
+(in-microtheory (SocialModelMtFn Swapnanil))
+
+(isa Swapnanil NUPerson)
+(userInfo Swapnanil Food (FruitFn AppleTree))
+(userInfo Swapnanil WheeledTransportationDevice HyundaiSonataCar)
+
+(FNNounSemtrans (TheList) Swapnanil-TheWord
+  (and (isa :NOUN Swapnanil)) (frame FN_Misc)
+  (bindingTemplate (TheList)) (groupPatterns (TheSet)))
+
+(in-microtheory (SocialModelMtFn Nate))
+
+(isa Nate NUPerson)
+(userInfo Nate Food Steak-Beef-MeatCut)
+(userInfo Nate WheeledTransportationDevice FordTaurusCar)
+
+(FNNounSemtrans (TheList) Nate-TheWord
+  (and (isa :NOUN Nate)) (frame FN_Misc)
+  (bindingTemplate (TheList)) (groupPatterns (TheSet)))
+
+(nameString Nate "Nate")
+
+(in-microtheory (SocialModelMtFn Jakub))
+
+(isa Jakub NUPerson)
+(userInfo Jakub Food Soup)
+(userInfo Jakub WheeledTransportationDevice CommuterTrain)
+
+(FNNounSemtrans (TheList) Jakub-TheWord
+  (and (isa :NOUN Jakub)) (frame FN_Misc)
+  (bindingTemplate (TheList)) (groupPatterns (TheSet)))
+
+(in-microtheory (SocialModelMtFn Annika))
+
+(isa Annika NUPerson)
+(userInfo Annika Food PotatoChip)
+(userInfo Annika WheeledTransportationDevice MountainBike)
+
+(FNNounSemtrans (TheList) Annika-TheWord
+  (and (isa :NOUN Annika)) (frame FN_Misc)
+  (bindingTemplate (TheList)) (groupPatterns (TheSet)))

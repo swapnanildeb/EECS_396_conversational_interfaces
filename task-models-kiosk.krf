@@ -128,7 +128,7 @@
     (doAgentPlan
      (actionSequence
       (TheList 
-          (doRecord (ist-Information Interaction-Manager-KioskMt (userInfo ?user ?category ?fave-answer)))
+          (doRecord (ist-Information (SocialModelMtFn ?user) (userInfo ?user ?category ?fave-answer)))
           (doSayUtterance ?system-utterance ?response)
           (doForget (ist-Information Interaction-Manager-KioskMt (handleKioskInfo ?category))))))))))
 
