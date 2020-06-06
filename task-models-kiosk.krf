@@ -37,8 +37,7 @@
     (processUserUtterance ?c ?string)))))
 
 (preconditionForMethod
- (and (uninferredSentence (handleKioskInfo "true"))
-      (different ?string "nil")
+ (and (different ?string "nil")
       (currentDomain ?domain)   ; the outsourced handler doesn't support a ground query signature yet.
       (equals ?domain Kiosk))
  (methodForAction
@@ -49,24 +48,9 @@
      (actionSequence
       (TheList (handleKioskInput ?context ?string))))))))
 
-(preconditionForMethod             ;; This should be the response handler.
- (and (different ?string "nil")
-      (currentDomain ?domain)   
-      (equals ?domain Kiosk)
-      (currentUser ?user))
- (methodForAction
-  (processUserUtterance ?context ?string)         ; ?context is the session-context
-  (actionSequence
-   (TheList
-    (doAgentPlan
-     (actionSequence
-      (TheList 
-          (doRecord (ist-Information Interaction-Manager-KioskMt (userInfo ?user ?string)))
-          (doForget (ist-Information Interaction-Manager-KioskMt (handleKioskInfo "true")))
-          (doSayUtterance ?system-utterance "Wow, me too! Let me know if I can help with anything else!"))))))))
-
 (preconditionForMethod
- (and (currentUser ?user)
+ (and (uninferredSentence (handleKioskInfo ?obj))
+      (currentUser ?user)
       (outsourcedOnly (currentTime ?pre-parse-time)) ; judging by the other use of currentTime, this is bad for backtracking, how to fix?
       (evaluate ?interps
         (TheClosedRetrievalSetOf ?prop
@@ -75,6 +59,11 @@
       (evaluate ?s-ids
         (TheClosedRetrievalSetOf ?s-id
           (wmOnly (subexpressionMatching (ist-Information ?context (interpretationOf ?s-id ?interpretation)) ?interps ?expr))))
+      (evaluate ?question-pair
+        (RandomMemberFn (TheSet (Food "What's your favorite food?")
+                                (WheeledTransportationDevice "How do you travel?"))))
+      (evaluate ?category (Arg0Fn ?question-pair))
+      (evaluate ?question (Arg1Fn ?question-pair))
       (outsourcedOnly (currentSentenceId ?sentence-id))  ; of the form Sentence-3434192505-1834, just the last sentence read in
       (outsourcedOnly (currentTurn ?turn))
       (outsourcedOnly (currentTime ?time))  ; This is bad.  If it backtracks to here it loops forever!
@@ -97,11 +86,94 @@
      (actionSequence
       (TheList 
           (answerQuestionViaEEs (DiscourseCaseFn ?discourse-id))
-          (doSayUtterance ?system-utterance "What's your favorite food?")
-          (doRecord (ist-Information Interaction-Manager-KioskMt (handleKioskInfo "true"))))))))))
+          (doSayUtterance ?system-utterance ?question)
+          (doRecord (ist-Information Interaction-Manager-KioskMt (handleKioskInfo ?category))))))))))
 
-(<== (preferInContext (processUserUtterance ?context ?string) ?seq1 ?seq2) 
-     (containsPattern (handleKioskInput ?nc ?ns) ?seq1))
+(preconditionForMethod
+ (and (currentUser ?user)
+      (handleKioskInfo ?category)
+      (outsourcedOnly (currentTime ?pre-parse-time)) ; judging by the other use of currentTime, this is bad for backtracking, how to fix?
+      (evaluate ?interps
+        (TheClosedRetrievalSetOf ?prop
+          (and (outsourcedOnly (textInterpretation ?string ?s-id ?interpretation))
+               (unifies ?prop (ist-Information ?context (interpretationOf ?s-id ?interpretation))))))
+      (evaluate ?s-ids
+        (TheClosedRetrievalSetOf ?s-id
+          (wmOnly (subexpressionMatching (ist-Information ?context (interpretationOf ?s-id ?interpretation)) ?interps ?expr))))
+      (evaluate ?true-interps
+        (TheClosedRetrievalSetOf ?thing
+          (and (wmOnly (subexpressionMatching (isa ?answer ?thing) ?interps ?sub-expr))
+                (genls ?thing ?category))))
+      (evaluate ?fave-answer (Arg1Fn ?true-interps))
+      (prettyString-Canonical ?fave-answer ?answer-rep)
+      (formattedContentString "Wow, I like ~a too! Let me know if I can help you with anything else." (TheList ?answer-rep) ?response)
+      (outsourcedOnly (currentSentenceId ?sentence-id))  ; of the form Sentence-3434192505-1834, just the last sentence read in
+      (outsourcedOnly (currentTurn ?turn))
+      (outsourcedOnly (currentTime ?time))  ; This is bad.  If it backtracks to here it loops forever!
+      (outsourcedOnly (currentDiscourseId ?discourse-id)))
+ (methodForAction
+  (handleKioskInput ?context ?string)         ; ?context is the session-context
+  (actionSequence
+   (TheList
+    (doAssert (kioskLoggingInfo ?pre-parse-time ?time ?turn ?user))
+    (doRecordMembers
+     (TheSet
+      (ist-Information ?context (userUtteranceAt ?time ?sentence-id ?string))
+      (ist-Information ?context (isa ?sentence-id CommunicationAct-Single))
+      (ist-Information ?context (senderOfInfo ?sentence-id ?user))
+      (ist-Information ?context (turnUtterance ?turn ?sentence-id))
+      (ist-Information ?context (lastSentenceForStatements ?sentence-id ?s-ids))
+      ))
+    (doAnnounce "~&(userUtteranceAt ~a ~a ~s)" (?time ?sentence-id ?string))
+    (doAgentPlan
+     (actionSequence
+      (TheList 
+          (doRecord (ist-Information Interaction-Manager-KioskMt (userInfo ?user ?category ?fave-answer)))
+          (doSayUtterance ?system-utterance ?response)
+          (doForget (ist-Information Interaction-Manager-KioskMt (handleKioskInfo ?category))))))))))
+
+(preconditionForMethod
+ (and (currentUser ?user)
+      (handleKioskInfo ?category)
+      (outsourcedOnly (currentTime ?pre-parse-time)) ; judging by the other use of currentTime, this is bad for backtracking, how to fix?
+      (evaluate ?interps
+        (TheClosedRetrievalSetOf ?prop
+          (and (outsourcedOnly (textInterpretation ?string ?s-id ?interpretation))
+               (unifies ?prop (ist-Information ?context (interpretationOf ?s-id ?interpretation))))))
+      (evaluate ?s-ids
+        (TheClosedRetrievalSetOf ?s-id
+          (wmOnly (subexpressionMatching (ist-Information ?context (interpretationOf ?s-id ?interpretation)) ?interps ?expr))))
+      (evaluate ?true-interps
+        (TheClosedRetrievalSetOf ?thing
+          (and (wmOnly (subexpressionMatching (isa ?answer ?thing) ?interps ?sub-expr))
+                (genls ?thing ?category))))
+      (uninferredSentence (evaluate ?fave-answer (Arg1Fn ?true-interps)))
+      (outsourcedOnly (currentSentenceId ?sentence-id))  ; of the form Sentence-3434192505-1834, just the last sentence read in
+      (outsourcedOnly (currentTurn ?turn))
+      (outsourcedOnly (currentTime ?time))  ; This is bad.  If it backtracks to here it loops forever!
+      (outsourcedOnly (currentDiscourseId ?discourse-id)))
+ (methodForAction
+  (handleKioskInput ?context ?string)         ; ?context is the session-context
+  (actionSequence
+   (TheList
+    (doAssert (kioskLoggingInfo ?pre-parse-time ?time ?turn ?user))
+    (doRecordMembers
+     (TheSet
+      (ist-Information ?context (userUtteranceAt ?time ?sentence-id ?string))
+      (ist-Information ?context (isa ?sentence-id CommunicationAct-Single))
+      (ist-Information ?context (senderOfInfo ?sentence-id ?user))
+      (ist-Information ?context (turnUtterance ?turn ?sentence-id))
+      (ist-Information ?context (lastSentenceForStatements ?sentence-id ?s-ids))
+      ))
+    (doAnnounce "~&(userUtteranceAt ~a ~a ~s)" (?time ?sentence-id ?string))
+    (doAgentPlan
+     (actionSequence
+      (TheList
+          (doSayUtterance ?system-utterance "Alright, nevermind.")
+          (doForget (ist-Information Interaction-Manager-KioskMt (handleKioskInfo ?category))))))))))
+
+(<== (preferInContext (handleKioskInput ?context ?string) ?seq1 ?seq2) 
+     (containsPattern (answerQuestionViaEEs ?dc) ?seq1))
 
 (isa answerQuestionViaEEs ComplexActionPredicate)
 (arity answerQuestionViaEEs 1)
