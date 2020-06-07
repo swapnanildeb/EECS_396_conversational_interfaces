@@ -1,4 +1,27 @@
+(in-microtheory PeopleForSocialModelingMt)
+
+(isa userInfo TernaryPredicate)
+
+
+
+(in-microtheory SocialModelingEnglishMt)
+
+(genFormat userInfo "~A favorite ~A is ~A" (TheList (TheList 1 :POSSESSIVE) 2 3))
+
+
+
+(in-microtheory EANLU-Pnames)
+
+(indexedProperName (TheList) faraaz faraaz)
+(indexedProperName (TheList) swapnanil Swapnanil)
+(indexedProperName (TheList) nate Nate)
+(indexedProperName (TheList) annika Annika)
+(indexedProperName (TheList) jakub Jakub)
+
+
+
 (in-microtheory (SocialModelMtFn faraaz))
+(genlMt NUPeopleDataMt (SocialModelMtFn faraaz))
 
 (isa faraaz NUPerson)
 (userInfo faraaz Food Pizza)
@@ -8,7 +31,10 @@
   (and (isa :NOUN faraaz)) (frame FN_Misc)
   (bindingTemplate (TheList)) (groupPatterns (TheSet)))
 
+
+
 (in-microtheory (SocialModelMtFn Swapnanil))
+(genlMt NUPeopleDataMt (SocialModelMtFn Swapnanil))
 
 (isa Swapnanil NUPerson)
 (userInfo Swapnanil Food (FruitFn AppleTree))
@@ -18,7 +44,10 @@
   (and (isa :NOUN Swapnanil)) (frame FN_Misc)
   (bindingTemplate (TheList)) (groupPatterns (TheSet)))
 
+
+
 (in-microtheory (SocialModelMtFn Nate))
+(genlMt NUPeopleDataMt (SocialModelMtFn Nate))
 
 (isa Nate NUPerson)
 (userInfo Nate Food Steak-Beef-MeatCut)
@@ -28,9 +57,10 @@
   (and (isa :NOUN Nate)) (frame FN_Misc)
   (bindingTemplate (TheList)) (groupPatterns (TheSet)))
 
-(nameString Nate "Nate")
+
 
 (in-microtheory (SocialModelMtFn Jakub))
+(genlMt NUPeopleDataMt (SocialModelMtFn Jakub))
 
 (isa Jakub NUPerson)
 (userInfo Jakub Food Soup)
@@ -40,7 +70,10 @@
   (and (isa :NOUN Jakub)) (frame FN_Misc)
   (bindingTemplate (TheList)) (groupPatterns (TheSet)))
 
+
+
 (in-microtheory (SocialModelMtFn Annika))
+(genlMt NUPeopleDataMt (SocialModelMtFn Annika))
 
 (isa Annika NUPerson)
 (userInfo Annika Food PotatoChip)
