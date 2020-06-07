@@ -23,6 +23,7 @@
           (isa person123 NUPerson))
      (:texts
       "What is Faraaz's favorite food?"
+      "What is Jakub's favorite food
       "Can you tell me Nate's favorite food?"
       "What does Swapnanil like to eat"
       "What food does Annika like?"
@@ -33,7 +34,7 @@
           (isa person123 NUPerson))
      (:texts
       "How does Faraaz travel?"
-      "What is Faraaz's preferred method of travel?"
+      "What is Jakub's preferred method of travel?"
       "What does Nate use to travel?"
       "How does Swapnanil like to travel"
       "What method of travel does Annika like?"
