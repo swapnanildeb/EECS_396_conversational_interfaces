@@ -38,7 +38,9 @@ This functionality can be tested by:
      - I use a Ford Taurus.
 6. \(Optional) Right-click the Session Reasoner agent, click Browse KB, then search for userInfo and click 'All References' on the left. Your answer should be tied to your Companions username in a SocialModeling microtheory uniquely to you.
 
-![Example of information storage functionality through conversation](images/info_storage_1.png)
+<p align="center">
+  <img src="images/info_storage_1.png" alt="Example of information storage functionality through conversation">
+</p>
 
 ## User Preference Retrieval
 
@@ -79,7 +81,9 @@ This functionality can be tested by:
    * What is Jakub's preferred method of travel?
 7. The Kiosk will return the answer (and may potentially ask a follow-up question; the followup question may be ignored if you wish.
 
-![Example of information retrieval functionality](images/info_retrieval_1.png)
+<p align="center">
+  <img src="images/info_retrieval_1.png" alt="Example of information retrieval functionality">
+</p>
 
 ***
 
