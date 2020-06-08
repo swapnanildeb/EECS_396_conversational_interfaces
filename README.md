@@ -65,7 +65,7 @@ KIOSK: Wow, I like Hyundai Sonata too! Let me know if I can help you with anythi
 
 This functionality can be tested by:
 1. Open a fresh instance of Companions in the Kiosk domain
-2. In the accompanying Allegro Lisp console, type one of the following commands. The former retains all original answerable questions while adding our own, while the latter contains only our functions, but is much faster to train.
+2. In the accompanying Allegro Lisp console, type one of the following commands. The former retains all original answerable questions while adding our own, while the latter contains only our new questions, but is much faster to train.
    * `:ld <absolute_path_to_train-questions.lsp>`
    * `:ld <absolute_path_to_user-info-questions.lsp>`
 3. In the lisp console, type `(forget-case-library *gen-ees-library*)`
