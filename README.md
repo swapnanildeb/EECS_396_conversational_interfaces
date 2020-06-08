@@ -38,6 +38,8 @@ This functionality can be tested by:
      - I use a Ford Taurus.
 6. \(Optional) Right-click the Session Reasoner agent, click Browse KB, then search for userInfo and click 'All References' on the left. Your answer should be tied to your Companions username in a SocialModeling microtheory uniquely to you.
 
+![Example of information storage functionality through conversation](images/info_storage_1.png)
+
 ## User Preference Retrieval
 
 The desired user's preference is retrieved through asking a question, like so. 
@@ -68,14 +70,17 @@ This functionality can be tested by:
 4. In the lisp console, type one of the following. The first should be used if all training questions were included. The second should be used if only our questions were used for training.
    * `(run-training-set *full-question-set*)`
    * `(run-training-set *user-info-questions*)`
-5. Ask the Kiosk about the food or travel preferences of a properly ontologized user. Here is a list of known to-be-working questions:
+5. Ensure that the `task-models-kiosk.krf` and `user-info.krf` files are loaded in the Session Reasoner agent.
+6. Ask the Kiosk about the food or travel preferences of a properly ontologized user. Here is a list of known to-be-working questions:
    * What is Faraaz's favorite food?
    * What food does Nate like to eat?
    * How does Swapnanil like to travel?
    * How does Annika travel?
    * What is Jakub's preferred method of travel?
-6. The Kiosk will return the answer (and may potentially ask a follow-up question; it may be ignored if you wish.
+7. The Kiosk will return the answer (and may potentially ask a follow-up question; the followup question may be ignored if you wish.
+
+![Example of information retrieval functionality](images/info_retrieval_1.png)
 
 ***
 
-Screenshots of sample conversations can be found in the repository's images folder.
+Additional screenshots of sample conversations can be found in the repository's images folder.
