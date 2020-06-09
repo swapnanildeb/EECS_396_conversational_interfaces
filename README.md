@@ -1,5 +1,7 @@
 # User Ontologization Extension for Companions Kiosk
 
+Developers: Faraaz Beyabani, Annika Amlie, Swapnanil Deb, Jakub Wasylkowski, Nathan Antwan
+
 [Repository Link](https://github.com/swapnanildeb/EECS_396_conversational_interfaces)
 
 This project was developed for Professor Ken Forbus's Conversational Interfaces Course at Northwestern University.
